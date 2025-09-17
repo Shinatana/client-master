@@ -24,7 +24,8 @@ type Client struct {
 	// Deprecated: use base instead.
 	Headers Headers
 	// Deprecated: use base instead.
-	baseUrl    string
+	baseUrl string
+
 	base       *url.URL
 	headers    http.Header
 	httpClient http.Client

@@ -8,17 +8,21 @@ import (
 	"net/url"
 )
 
+var (
+	ErrFailedToReadResponseBody = fmt.Errorf("failed to read response body")
+)
+
 func (c *Client) SendRequest(ctx context.Context, method string, params url.Values,
 	headers http.Header, body io.Reader) (*Response, error) {
 
 	req, err := c.newRequestWithParams(ctx, method, params, headers, body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to prepare a request: %w", err)
 	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to send a request: %w", err)
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
@@ -31,7 +35,7 @@ func (c *Client) SendRequest(ctx context.Context, method string, params url.Valu
 		return &Response{
 			StatusCode: resp.StatusCode,
 			Headers:    resp.Header.Clone(),
-		}, fmt.Errorf("failed to read response body: %w", err)
+		}, fmt.Errorf("%w: %w", ErrFailedToReadResponseBody, err)
 	}
 
 	return &Response{
