@@ -50,36 +50,38 @@ func NewHTTPClient(baseUrl string, opts ...Option) (*Client, error) {
 	}, nil
 }
 
-// todo refine headers funcs
-
-func (c *Client) AddHeader(key, val string) {
-	if c.Headers == nil {
-		c.Headers = make(Headers, 1)
+func (c *Client) AddHeader(key string, val string) {
+	if c.headers == nil {
+		c.headers = make(http.Header, 1)
 	}
-
-	c.Headers[key] = val
+	c.headers.Add(key, val)
 }
 
-func (c *Client) AddHeaders(headers Headers) {
-	if headers == nil {
+func (c *Client) AddHeaders(h http.Header) {
+	if h == nil {
 		return
 	}
-	if c.Headers == nil {
-		c.Headers = make(Headers, len(headers))
+	if c.headers == nil {
+		c.headers = make(http.Header, len(h))
 	}
-	for k, v := range headers {
-		c.Headers[k] = v
+	for k, vals := range h {
+		for _, v := range vals {
+			c.headers.Add(k, v)
+		}
 	}
 }
 
-func (c *Client) ReplaceHeaders(headers Headers) {
-	if headers == nil {
-		c.Headers = make(Headers)
+func (c *Client) ReplaceHeaders(h http.Header) {
+	if h == nil {
+		c.headers = make(http.Header)
 		return
 	}
-	cpy := make(Headers, len(headers))
-	for k, v := range headers {
-		cpy[k] = v
+	clone := make(http.Header, len(h))
+	for k, vals := range h {
+		// copy slice to avoid sharing backing arrays
+		cp := make([]string, len(vals))
+		copy(cp, vals)
+		clone[k] = cp
 	}
-	c.Headers = cpy
+	c.headers = clone
 }
