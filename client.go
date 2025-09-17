@@ -20,9 +20,10 @@ type Client struct {
 	baseUrl    string
 	httpClient http.Client
 	logger     *zerolog.Logger
+	userAgent  string
 }
 
-func New(baseUrl string, timeout *int, log *zerolog.Logger, nolog bool) (*Client, error) {
+func New(baseUrl string, timeout *int, log *zerolog.Logger, nolog bool, userAgent string) (*Client, error) {
 	if log == nil && !nolog {
 		return nil, errors.New("no logger provided")
 	}
@@ -44,7 +45,8 @@ func New(baseUrl string, timeout *int, log *zerolog.Logger, nolog bool) (*Client
 		httpClient: http.Client{
 			Timeout: time.Second * time.Duration(tt),
 		},
-		logger: log,
+		logger:    log,
+		userAgent: userAgent,
 	}, nil
 }
 
@@ -61,6 +63,10 @@ func (client *Client) fillRequestHeaders(r *http.Request, headers Headers) *Clie
 
 	for key, val := range headers {
 		r.Header.Add(key, val)
+	}
+
+	if client.userAgent != "" {
+		r.Header.Set("User-Agent", client.userAgent)
 	}
 
 	return client
@@ -313,6 +319,10 @@ func getResponseBody(response *http.Response, logger *zerolog.Logger) ([]byte, *
 				Msg("failed to close response body")
 		}
 	}()
+
+	if response.StatusCode >= 300 {
+		return nil, &response.StatusCode, errors.New("http request failed")
+	}
 
 	body, err := io.ReadAll(response.Body)
 
