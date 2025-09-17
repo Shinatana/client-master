@@ -40,7 +40,7 @@ func buildURL(base *url.URL, extraPath string, params url.Values) (*url.URL, err
 		u.Path = path.Join(u.Path, extraPath)
 	}
 
-	if params != nil && len(params) > 0 {
+	if len(params) > 0 {
 		q := u.Query()
 		for k, vals := range params {
 			for _, v := range vals {
@@ -58,19 +58,15 @@ func buildURL(base *url.URL, extraPath string, params url.Values) (*url.URL, err
 func mergeHeaders(base, extra http.Header) http.Header {
 	merged := make(http.Header)
 
-	if base != nil {
-		for k, vals := range base {
-			for _, v := range vals {
-				merged.Add(k, v)
-			}
+	for k, vals := range base {
+		for _, v := range vals {
+			merged.Add(k, v)
 		}
 	}
 
-	if extra != nil {
-		for k, vals := range extra {
-			for _, v := range vals {
-				merged.Add(k, v)
-			}
+	for k, vals := range extra {
+		for _, v := range vals {
+			merged.Add(k, v)
 		}
 	}
 
