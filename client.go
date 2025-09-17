@@ -43,12 +43,15 @@ func New(baseUrl string, timeout *int) *Client {
 		tt = *timeout
 	}
 
+	nop := zerolog.Nop()
+
 	return &Client{
 		Headers: Headers{},
 		baseUrl: baseUrl,
 		httpClient: http.Client{
 			Timeout: time.Second * time.Duration(tt),
 		},
+		lg: &nop,
 	}
 }
 
