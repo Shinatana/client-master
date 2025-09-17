@@ -90,7 +90,14 @@ func (client *Client) SendGet(path string, params Params, headers Headers) ([]by
 			Msg("failed to send HTTP request")
 		return nil, nil, err
 	}
-	return getResponseBody(response)
+
+	client.logger.Info().
+		Str("method", request.Method).
+		Str("url", request.URL.String()).
+		Int("status", response.StatusCode).
+		Msg("http request succeeded")
+
+	return getResponseBody(response, client.logger)
 }
 
 func (client *Client) SendPost(
@@ -123,8 +130,13 @@ func (client *Client) SendPost(
 			Msg("failed to send HTTP request")
 		return nil, nil, err
 	}
+	client.logger.Info().
+		Str("method", request.Method).
+		Str("url", request.URL.String()).
+		Int("status", response.StatusCode).
+		Msg("http request succeeded")
 
-	return getResponseBody(response)
+	return getResponseBody(response, client.logger)
 }
 
 func (client *Client) SendPut(
@@ -154,7 +166,14 @@ func (client *Client) SendPut(
 			Msg("failed to send HTTP request")
 		return nil, nil, err
 	}
-	return getResponseBody(response)
+
+	client.logger.Info().
+		Str("method", request.Method).
+		Str("url", request.URL.String()).
+		Int("status", response.StatusCode).
+		Msg("http request succeeded")
+
+	return getResponseBody(response, client.logger)
 }
 
 func (client *Client) SendPatch(
@@ -184,7 +203,14 @@ func (client *Client) SendPatch(
 			Msg("failed to send HTTP request")
 		return nil, nil, err
 	}
-	return getResponseBody(response)
+
+	client.logger.Info().
+		Str("method", request.Method).
+		Str("url", request.URL.String()).
+		Int("status", response.StatusCode).
+		Msg("http request succeeded")
+
+	return getResponseBody(response, client.logger)
 }
 
 func (client *Client) SendDelete(path string, params Params, headers Headers) ([]byte, *int, error) {
@@ -209,7 +235,14 @@ func (client *Client) SendDelete(path string, params Params, headers Headers) ([
 			Msg("failed to send HTTP request")
 		return nil, nil, err
 	}
-	return getResponseBody(response)
+
+	client.logger.Info().
+		Str("method", request.Method).
+		Str("url", request.URL.String()).
+		Int("status", response.StatusCode).
+		Msg("http request succeeded")
+
+	return getResponseBody(response, client.logger)
 }
 
 func (client *Client) prepareUrlWithParams(path string, dirtyParams Params) (string, error) {
@@ -263,17 +296,22 @@ func (client *Client) getResponse(request *http.Request) (*http.Response, error)
 	return response, nil
 }
 
-func closeResponseBody(response *http.Response) {
+func closeResponseBody(response *http.Response) error {
 	err := response.Body.Close()
 
 	if err != nil {
-		panic(err)
+		return errors.New("failed to close response body")
 	}
+	return nil
 }
 
-func getResponseBody(response *http.Response) ([]byte, *int, error) {
+func getResponseBody(response *http.Response, logger *zerolog.Logger) ([]byte, *int, error) {
 	defer func() {
-		closeResponseBody(response)
+		if err := closeResponseBody(response); err != nil {
+			logger.Warn().
+				Err(err).
+				Msg("failed to close response body")
+		}
 	}()
 
 	body, err := io.ReadAll(response.Body)
