@@ -1,0 +1,17 @@
+image: golang:1.21.4
+
+stages:
+  - lint
+  - test
+
+lint:
+  stage: lint
+  image: golangci/golangci-lint:v1.54.2
+  script:
+    - golangci-lint run --config=./golangci.yml
+
+test:
+  stage: test
+  script:
+    - touch .env
+    - go test -v ./...
