@@ -1,11 +1,19 @@
 package client
 
 import (
+	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/rs/zerolog"
 )
+
+type Response struct {
+	StatusCode int
+	Body       []byte
+	Headers    http.Header
+}
 
 const (
 	defaultTimeout = 10
@@ -13,53 +21,64 @@ const (
 )
 
 type Client struct {
-	Headers    Headers
+	// Deprecated: use base instead.
+	Headers Headers
+	// Deprecated: use base instead.
 	baseUrl    string
+	base       *url.URL
+	headers    http.Header
 	httpClient http.Client
 	lg         *zerolog.Logger
 }
 
-func NewHTTPClient(baseUrl string, opts ...Option) *Client {
+func NewHTTPClient(baseUrl string, opts ...Option) (*Client, error) {
+	baseParsedURL, err := url.Parse(baseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("invalid base url '%s': %w", baseUrl, err)
+	}
+
 	suppliedOptions := applyOptions(opts...)
 
 	return &Client{
-		Headers: suppliedOptions.headers,
-		baseUrl: baseUrl,
+		base:    baseParsedURL,
+		headers: suppliedOptions.headers,
 		httpClient: http.Client{
 			Timeout: suppliedOptions.timeout,
 		},
 		lg: suppliedOptions.lg,
-	}
+	}, nil
 }
 
-func (client *Client) AddHeader(key, val string) {
-	if client.Headers == nil {
-		client.Headers = make(Headers, 1)
+// todo refine headers funcs
+
+func (c *Client) AddHeader(key, val string) {
+	if c.Headers == nil {
+		c.Headers = make(Headers, 1)
 	}
 
-	client.Headers[key] = val
+	c.Headers[key] = val
 }
 
-func (client *Client) AddHeaders(headers Headers) {
+func (c *Client) AddHeaders(headers Headers) {
 	if headers == nil {
 		return
 	}
-	if client.Headers == nil {
-		client.Headers = make(Headers, len(headers))
+	if c.Headers == nil {
+		c.Headers = make(Headers, len(headers))
 	}
 	for k, v := range headers {
-		client.Headers[k] = v
+		c.Headers[k] = v
 	}
 }
 
-func (client *Client) ReplaceHeaders(headers Headers) {
+func (c *Client) ReplaceHeaders(headers Headers) {
 	if headers == nil {
-		client.Headers = make(Headers)
+		c.Headers = make(Headers)
 		return
 	}
 	cpy := make(Headers, len(headers))
 	for k, v := range headers {
 		cpy[k] = v
 	}
-	client.Headers = cpy
+	c.Headers = cpy
 }
