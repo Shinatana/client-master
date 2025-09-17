@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
 )
 
@@ -23,24 +24,30 @@ func validateMethod(method string) (string, error) {
 	}
 }
 
-func buildURL(base *url.URL, params url.Values) (*url.URL, error) {
+func buildURL(base *url.URL, extraPath string, params url.Values) (*url.URL, error) {
 	if base == nil {
 		return nil, errors.New("base URL is nil")
 	}
 
 	u := *base
 
-	if params == nil || len(params) == 0 {
-		return &u, nil
-	}
-
-	q := u.Query()
-	for k, vals := range params {
-		for _, v := range vals {
-			q.Add(k, v)
+	if extraPath != "" {
+		if strings.HasPrefix(extraPath, "/") {
+			u.Path = path.Clean(extraPath)
+		} else {
+			u.Path = path.Join(u.Path, extraPath)
 		}
 	}
-	u.RawQuery = q.Encode()
+
+	if params != nil && len(params) > 0 {
+		q := u.Query()
+		for k, vals := range params {
+			for _, v := range vals {
+				q.Add(k, v)
+			}
+		}
+		u.RawQuery = q.Encode()
+	}
 
 	return &u, nil
 }
@@ -67,9 +74,9 @@ func mergeHeaders(base, extra http.Header) http.Header {
 	return merged
 }
 
-func (c *Client) newRequestWithParams(ctx context.Context, method string, params url.Values,
-	headers http.Header, body io.Reader) (*http.Request, error) {
-	u, err := buildURL(c.base, params)
+func (c *Client) newRequestWithParams(ctx context.Context, method string, path string,
+	params url.Values, headers http.Header, body io.Reader) (*http.Request, error) {
+	u, err := buildURL(c.base, path, params)
 	if err != nil {
 		return nil, err
 	}

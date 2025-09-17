@@ -14,12 +14,12 @@ var (
 	ErrStatusCodeNotSuccess     = fmt.Errorf("status code is not success")
 )
 
-func (c *Client) SendRequest(ctx context.Context, method string, params url.Values,
-	headers http.Header, body io.Reader) (*Response, error) {
+func (c *Client) SendRequest(ctx context.Context, method string, path string,
+	params url.Values, headers http.Header, body io.Reader) (*Response, error) {
 
 	start := time.Now()
 
-	req, err := c.newRequestWithParams(ctx, method, params, headers, body)
+	req, err := c.newRequestWithParams(ctx, method, path, params, headers, body)
 	if err != nil {
 		c.lg.Error().Err(err).
 			Str("method", method).
@@ -84,32 +84,32 @@ func (c *Client) SendRequest(ctx context.Context, method string, params url.Valu
 
 // Methods without a request body.
 
-func (c *Client) Get(ctx context.Context, params url.Values, headers http.Header) (*Response, error) {
-	return c.SendRequest(ctx, http.MethodGet, params, headers, nil)
+func (c *Client) Get(ctx context.Context, path string, params url.Values, headers http.Header) (*Response, error) {
+	return c.SendRequest(ctx, http.MethodGet, path, params, headers, nil)
 }
 
-func (c *Client) Head(ctx context.Context, params url.Values, headers http.Header) (*Response, error) {
-	return c.SendRequest(ctx, http.MethodHead, params, headers, nil)
+func (c *Client) Head(ctx context.Context, path string, params url.Values, headers http.Header) (*Response, error) {
+	return c.SendRequest(ctx, http.MethodHead, path, params, headers, nil)
 }
 
-func (c *Client) Options(ctx context.Context, params url.Values, headers http.Header) (*Response, error) {
-	return c.SendRequest(ctx, http.MethodOptions, params, headers, nil)
+func (c *Client) Options(ctx context.Context, path string, params url.Values, headers http.Header) (*Response, error) {
+	return c.SendRequest(ctx, http.MethodOptions, path, params, headers, nil)
 }
 
 // Methods that usually include a request body.
 
-func (c *Client) Post(ctx context.Context, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
-	return c.SendRequest(ctx, http.MethodPost, params, headers, body)
+func (c *Client) Post(ctx context.Context, path string, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
+	return c.SendRequest(ctx, http.MethodPost, path, params, headers, body)
 }
 
-func (c *Client) Put(ctx context.Context, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
-	return c.SendRequest(ctx, http.MethodPut, params, headers, body)
+func (c *Client) Put(ctx context.Context, path string, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
+	return c.SendRequest(ctx, http.MethodPut, path, params, headers, body)
 }
 
-func (c *Client) Patch(ctx context.Context, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
-	return c.SendRequest(ctx, http.MethodPatch, params, headers, body)
+func (c *Client) Patch(ctx context.Context, path string, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
+	return c.SendRequest(ctx, http.MethodPatch, path, params, headers, body)
 }
 
-func (c *Client) Delete(ctx context.Context, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
-	return c.SendRequest(ctx, http.MethodDelete, params, headers, body)
+func (c *Client) Delete(ctx context.Context, path string, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
+	return c.SendRequest(ctx, http.MethodDelete, path, params, headers, body)
 }
