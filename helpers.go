@@ -37,11 +37,7 @@ func buildURL(base *url.URL, extraPath string, params url.Values) (*url.URL, err
 	u := *base
 
 	if extraPath != "" {
-		if strings.HasPrefix(extraPath, "/") {
-			u.Path = path.Clean(extraPath)
-		} else {
-			u.Path = path.Join(u.Path, extraPath)
-		}
+		u.Path = path.Join(u.Path, extraPath)
 	}
 
 	if params != nil && len(params) > 0 {
