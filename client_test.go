@@ -178,18 +178,3 @@ func TestClient_ReplaceHeaders(t *testing.T) {
 		assert.Equal(t, []string{"v1", "v2", "v3"}, src["K"])
 	})
 }
-
-/*
-*************
-
-	Helpers
-
-*************
-*/
-func mustNewClient(t *testing.T, base string, opts ...Option) *Client {
-	t.Helper()
-	c, err := NewHTTPClient(base, opts...)
-	require.NoError(t, err)
-	require.NotNil(t, c)
-	return c
-}

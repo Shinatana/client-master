@@ -99,7 +99,9 @@ func (c *Client) SendRequest(ctx context.Context, method string, path string,
 // path is joined with the client's base URL path.
 // params are encoded into the query string.
 // headers are merged with the client's default headers.
-func (c *Client) Get(ctx context.Context, path string, params url.Values, headers http.Header) (*Response, error) {
+func (c *Client) Get(ctx context.Context, path string, params url.Values,
+	headers http.Header) (*Response, error) {
+
 	return c.SendRequest(ctx, http.MethodGet, path, params, headers, nil)
 }
 
@@ -107,7 +109,9 @@ func (c *Client) Get(ctx context.Context, path string, params url.Values, header
 // path is joined with the client's base URL path.
 // params are encoded into the query string.
 // headers are merged with the client's default headers.
-func (c *Client) Head(ctx context.Context, path string, params url.Values, headers http.Header) (*Response, error) {
+func (c *Client) Head(ctx context.Context, path string, params url.Values,
+	headers http.Header) (*Response, error) {
+
 	return c.SendRequest(ctx, http.MethodHead, path, params, headers, nil)
 }
 
@@ -115,7 +119,9 @@ func (c *Client) Head(ctx context.Context, path string, params url.Values, heade
 // path is joined with the client's base URL path.
 // params are encoded into the query string.
 // headers are merged with the client's default headers.
-func (c *Client) Options(ctx context.Context, path string, params url.Values, headers http.Header) (*Response, error) {
+func (c *Client) Options(ctx context.Context, path string, params url.Values,
+	headers http.Header) (*Response, error) {
+
 	return c.SendRequest(ctx, http.MethodOptions, path, params, headers, nil)
 }
 
@@ -124,7 +130,9 @@ func (c *Client) Options(ctx context.Context, path string, params url.Values, he
 // params are encoded into the query string.
 // headers are merged with the client's default headers.
 // body may be nil if the endpoint does not require a body.
-func (c *Client) Post(ctx context.Context, path string, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
+func (c *Client) Post(ctx context.Context, path string, params url.Values,
+	headers http.Header, body io.Reader) (*Response, error) {
+
 	return c.SendRequest(ctx, http.MethodPost, path, params, headers, body)
 }
 
@@ -133,7 +141,9 @@ func (c *Client) Post(ctx context.Context, path string, params url.Values, heade
 // params are encoded into the query string.
 // headers are merged with the client's default headers.
 // body may be nil if the endpoint does not require a body.
-func (c *Client) Put(ctx context.Context, path string, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
+func (c *Client) Put(ctx context.Context, path string, params url.Values,
+	headers http.Header, body io.Reader) (*Response, error) {
+
 	return c.SendRequest(ctx, http.MethodPut, path, params, headers, body)
 }
 
@@ -142,7 +152,9 @@ func (c *Client) Put(ctx context.Context, path string, params url.Values, header
 // params are encoded into the query string.
 // headers are merged with the client's default headers.
 // body may be nil if the endpoint does not require a body.
-func (c *Client) Patch(ctx context.Context, path string, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
+func (c *Client) Patch(ctx context.Context, path string, params url.Values,
+	headers http.Header, body io.Reader) (*Response, error) {
+
 	return c.SendRequest(ctx, http.MethodPatch, path, params, headers, body)
 }
 
@@ -151,6 +163,8 @@ func (c *Client) Patch(ctx context.Context, path string, params url.Values, head
 // params are encoded into the query string.
 // headers are merged with the client's default headers.
 // body may be nil if the endpoint does not require a body.
-func (c *Client) Delete(ctx context.Context, path string, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
+func (c *Client) Delete(ctx context.Context, path string, params url.Values,
+	headers http.Header, body io.Reader) (*Response, error) {
+
 	return c.SendRequest(ctx, http.MethodDelete, path, params, headers, body)
 }
