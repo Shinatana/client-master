@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"fmt"
+	"github.com/rs/zerolog"
 	"io"
 	"net/http"
 	"net/url"
@@ -17,9 +18,10 @@ type Client struct {
 	Headers    Headers
 	baseUrl    string
 	httpClient http.Client
+	logger     *zerolog.Logger
 }
 
-func New(baseUrl string, timeout *int) *Client {
+func New(baseUrl string, timeout *int, log *zerolog.Logger) *Client {
 	tt := defaultTimeout
 
 	if timeout != nil {
@@ -32,6 +34,7 @@ func New(baseUrl string, timeout *int) *Client {
 		httpClient: http.Client{
 			Timeout: time.Second * time.Duration(tt),
 		},
+		logger: log,
 	}
 }
 
@@ -53,10 +56,16 @@ func (client *Client) fillRequestHeaders(r *http.Request, headers Headers) *Clie
 	return client
 }
 
-func (client *Client) SendGet(path string, params Params, headers Headers) ([]byte, *int, error) {
+func (client *Client) SendGet(path string, params Params,
+	headers Headers) ([]byte, *int, error) {
 	request, err := client.createRequest(http.MethodGet, path, params, nil)
 
 	if err != nil {
+		client.logger.Error().
+			Err(err).
+			Str("method", http.MethodGet).
+			Str("url", client.baseUrl+path).
+			Msg("http_request_build_failed")
 		return nil, nil, err
 	}
 
@@ -67,6 +76,13 @@ func (client *Client) SendGet(path string, params Params, headers Headers) ([]by
 	response, err = client.getResponse(request)
 
 	if err != nil {
+		if client.logger != nil {
+			client.logger.Error().
+				Err(err).
+				Str("method", request.Method).
+				Str("url", request.URL.String()).
+				Msg("http_request_failed")
+		}
 		return nil, nil, err
 	}
 
