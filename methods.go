@@ -11,6 +11,7 @@ import (
 
 var (
 	ErrFailedToReadResponseBody = fmt.Errorf("failed to read response body")
+	ErrStatusCodeNotSuccess     = fmt.Errorf("status code is not success")
 )
 
 func (c *Client) SendRequest(ctx context.Context, method string, params url.Values,
@@ -68,11 +69,17 @@ func (c *Client) SendRequest(ctx context.Context, method string, params url.Valu
 		Int("resp_bytes", len(b)).
 		Msg("request completed")
 
-	return &Response{
+	res := &Response{
 		StatusCode: resp.StatusCode,
 		Body:       b,
 		Headers:    resp.Header.Clone(),
-	}, nil
+	}
+
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		return res, fmt.Errorf("%w: %d", ErrStatusCodeNotSuccess, res.StatusCode)
+	}
+
+	return res, nil
 }
 
 // Methods without a request body.
