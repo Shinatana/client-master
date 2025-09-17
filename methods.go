@@ -44,3 +44,35 @@ func (c *Client) SendRequest(ctx context.Context, method string, params url.Valu
 		Headers:    resp.Header.Clone(),
 	}, nil
 }
+
+// Methods without a request body.
+
+func (c *Client) Get(ctx context.Context, params url.Values, headers http.Header) (*Response, error) {
+	return c.SendRequest(ctx, http.MethodGet, params, headers, nil)
+}
+
+func (c *Client) Head(ctx context.Context, params url.Values, headers http.Header) (*Response, error) {
+	return c.SendRequest(ctx, http.MethodHead, params, headers, nil)
+}
+
+func (c *Client) Options(ctx context.Context, params url.Values, headers http.Header) (*Response, error) {
+	return c.SendRequest(ctx, http.MethodOptions, params, headers, nil)
+}
+
+// Methods that usually include a request body.
+
+func (c *Client) Post(ctx context.Context, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
+	return c.SendRequest(ctx, http.MethodPost, params, headers, body)
+}
+
+func (c *Client) Put(ctx context.Context, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
+	return c.SendRequest(ctx, http.MethodPut, params, headers, body)
+}
+
+func (c *Client) Patch(ctx context.Context, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
+	return c.SendRequest(ctx, http.MethodPatch, params, headers, body)
+}
+
+func (c *Client) Delete(ctx context.Context, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
+	return c.SendRequest(ctx, http.MethodDelete, params, headers, body)
+}
