@@ -36,6 +36,8 @@ func NewHTTPClient(baseUrl string, opts ...Option) *Client {
 	}
 }
 
+// New func
+// DEPRECATED: use NewHTTPClient instead
 func New(baseUrl string, timeout *int) *Client {
 	tt := defaultTimeout
 
@@ -55,10 +57,44 @@ func New(baseUrl string, timeout *int) *Client {
 	}
 }
 
+// SetHeader func
+// DEPRECATED: use AddHeader instead
 func (client *Client) SetHeader(key, val string) *Client {
 	client.Headers[key] = val
 
 	return client
+}
+
+func (client *Client) AddHeader(key, val string) {
+	if client.Headers == nil {
+		client.Headers = make(Headers, 1)
+	}
+
+	client.Headers[key] = val
+}
+
+func (client *Client) AddHeaders(headers Headers) {
+	if headers == nil {
+		return
+	}
+	if client.Headers == nil {
+		client.Headers = make(Headers, len(headers))
+	}
+	for k, v := range headers {
+		client.Headers[k] = v
+	}
+}
+
+func (client *Client) ReplaceHeaders(headers Headers) {
+	if headers == nil {
+		client.Headers = make(Headers)
+		return
+	}
+	cpy := make(Headers, len(headers))
+	for k, v := range headers {
+		cpy[k] = v
+	}
+	client.Headers = cpy
 }
 
 func (client *Client) fillRequestHeaders(r *http.Request, headers Headers) *Client {
