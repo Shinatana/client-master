@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 var (
@@ -15,28 +16,57 @@ var (
 func (c *Client) SendRequest(ctx context.Context, method string, params url.Values,
 	headers http.Header, body io.Reader) (*Response, error) {
 
+	start := time.Now()
+
 	req, err := c.newRequestWithParams(ctx, method, params, headers, body)
 	if err != nil {
+		c.lg.Error().Err(err).
+			Str("method", method).
+			Str("path", c.base.EscapedPath()).
+			Str("query", params.Encode()).
+			Msg("failed to prepare request")
 		return nil, fmt.Errorf("failed to prepare a request: %w", err)
 	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
+		c.lg.Error().Err(err).
+			Str("method", method).
+			Str("url", req.URL.String()).
+			Dur("duration", time.Since(start)).
+			Msg("failed to send request")
 		return nil, fmt.Errorf("failed to send a request: %w", err)
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-
+			c.lg.Warn().Err(err).
+				Str("method", method).
+				Str("url", req.URL.String()).
+				Msg("failed to close response body")
 		}
 	}()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
+		c.lg.Error().Err(err).
+			Str("method", method).
+			Str("url", req.URL.String()).
+			Int("status", resp.StatusCode).
+			Dur("duration", time.Since(start)).
+			Msg("failed to read response body")
 		return &Response{
 			StatusCode: resp.StatusCode,
 			Headers:    resp.Header.Clone(),
 		}, fmt.Errorf("%w: %w", ErrFailedToReadResponseBody, err)
 	}
+
+	c.lg.Info().
+		Str("method", method).
+		Str("url", req.URL.String()).
+		Int("status", resp.StatusCode).
+		Dur("duration", time.Since(start)).
+		Int("resp_bytes", len(b)).
+		Msg("request completed")
 
 	return &Response{
 		StatusCode: resp.StatusCode,
