@@ -21,7 +21,7 @@ const (
 )
 
 type Client struct {
-	// Deprecated: use base instead.
+	// Deprecated: use headers instead.
 	Headers Headers
 	// Deprecated: use base instead.
 	baseUrl string
