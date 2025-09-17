@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,6 +11,58 @@ import (
 
 	"github.com/rs/zerolog"
 )
+
+const (
+	// ContentTypeHeader deprecated
+	ContentTypeHeader = "Content-Type"
+	// ContentTypeJson deprecated
+	ContentTypeJson = "application/json"
+	// AuthorizationHeader deprecated
+	AuthorizationHeader = "Authorization"
+)
+
+// Headers deprecated
+type Headers map[string]string
+
+// Params deprecated
+type Params map[string]string
+
+// Href deprecated
+type Href string
+
+// LinksResponse deprecated
+type LinksResponse struct {
+	Self struct {
+		Href `json:"href"`
+	} `json:"self"`
+	First struct {
+		Href `json:"href"`
+	} `json:"first"`
+	Last struct {
+		Href `json:"href"`
+	} `json:"last"`
+	Prev struct {
+		Href `json:"href"`
+	} `json:"prev"`
+	Next struct {
+		Href `json:"href"`
+	} `json:"next"`
+}
+
+// MetaResponse deprecated
+type MetaResponse struct {
+	TotalCount  int `json:"totalCount"`
+	PageCount   int `json:"pageCount"`
+	CurrentPage int `json:"currentPage"`
+	PerPage     int `json:"perPage"`
+}
+
+// PrepareBasicAuth deprecated
+func PrepareBasicAuth(username, password string) string {
+	auth := username + ":" + password
+
+	return base64.StdEncoding.EncodeToString([]byte(auth))
+}
 
 // New func
 // DEPRECATED: use NewHTTPClient instead
