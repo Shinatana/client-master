@@ -12,6 +12,13 @@ import (
 // Typical usage:
 //
 //	NewHTTPClient(baseURL, WithTimeout(5*time.Second), WithLogger(logger))
+//
+// Notes:
+//   - Order is not guaranteed. Do not rely on the relative order in which
+//     options are applied.
+//   - Passing multiple WithXxx options does not guarantee order or precedence.
+//     Avoid specifying the same setting more than once; the effective value
+//     is undefined if duplicates are provided.
 type Option func(*optionList)
 
 // optionList collects configuration provided via Option functions.
@@ -41,9 +48,10 @@ func WithTimeout(timeout time.Duration) Option {
 	}
 }
 
-// WithHeaders sets default Headers to be sent with every request.
-// If nil is provided, it will be normalized to an empty map.
-// Callers may still override or add request-specific headers later.
+// WithHeaders sets default headers to be sent with every request.
+// If nil is provided, it will be normalized to an empty, non-nil map.
+// Request-specific headers are merged with these defaults using Add semantics
+// (values are appended; keys are not replaced).
 func WithHeaders(headers http.Header) Option {
 	return func(o *optionList) {
 		o.headers = headers

@@ -11,6 +11,8 @@ import (
 	"strings"
 )
 
+// validateMethod returns a canonical uppercase HTTP method if supported,
+// or an error if the method is empty or not one of the standard methods.
 func validateMethod(method string) (string, error) {
 	if method == "" {
 		return "", errors.New("http method is empty")
@@ -24,6 +26,9 @@ func validateMethod(method string) (string, error) {
 	}
 }
 
+// buildURL constructs a URL by copying base, optionally joining extraPath to the
+// base path, and appending params as the encoded query string. It returns an
+// error if base is nil.
 func buildURL(base *url.URL, extraPath string, params url.Values) (*url.URL, error) {
 	if base == nil {
 		return nil, errors.New("base URL is nil")
@@ -52,6 +57,8 @@ func buildURL(base *url.URL, extraPath string, params url.Values) (*url.URL, err
 	return &u, nil
 }
 
+// mergeHeaders merges two header maps into a new http.Header.
+// Values from both inputs are appended using Add semantics.
 func mergeHeaders(base, extra http.Header) http.Header {
 	merged := make(http.Header)
 
@@ -74,6 +81,10 @@ func mergeHeaders(base, extra http.Header) http.Header {
 	return merged
 }
 
+// newRequestWithParams creates a new *http.Request using the client's base URL,
+// joining path, encoding params as the query string, merging default and
+// request-specific headers, and attaching body. It validates the HTTP method
+// and binds the request to the provided context.
 func (c *Client) newRequestWithParams(ctx context.Context, method string, path string,
 	params url.Values, headers http.Header, body io.Reader) (*http.Request, error) {
 	u, err := buildURL(c.base, path, params)

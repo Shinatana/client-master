@@ -10,10 +10,23 @@ import (
 )
 
 var (
+	// ErrFailedToReadResponseBody indicates that reading the HTTP response body
+	// failed. The returned error will wrap the underlying I/O error.
 	ErrFailedToReadResponseBody = fmt.Errorf("failed to read response body")
-	ErrStatusCodeNotSuccess     = fmt.Errorf("status code is not success")
+	// ErrStatusCodeNotSuccess indicates that the HTTP response status code is not
+	// in the 2xx success range. The returned error message includes the status code.
+	ErrStatusCodeNotSuccess = fmt.Errorf("status code is not success")
 )
 
+// SendRequest builds and sends an HTTP request.
+// method must be a valid HTTP method (e.g., GET, POST).
+// path is joined with the client's base URL path.
+// params are encoded into the query string.
+// headers are merged with the client's default headers (added, not replaced).
+// body is an optional request body; it may be nil for methods without a body.
+// The returned Response includes the status code, headers, and body. If the status
+// code is not in the 2xx range, an error wrapping ErrStatusCodeNotSuccess is returned
+// alongside the Response. The provided context controls request cancellation and deadline.
 func (c *Client) SendRequest(ctx context.Context, method string, path string,
 	params url.Values, headers http.Header, body io.Reader) (*Response, error) {
 
@@ -82,34 +95,62 @@ func (c *Client) SendRequest(ctx context.Context, method string, path string,
 	return res, nil
 }
 
-// Methods without a request body.
-
+// Get sends an HTTP GET request.
+// path is joined with the client's base URL path.
+// params are encoded into the query string.
+// headers are merged with the client's default headers.
 func (c *Client) Get(ctx context.Context, path string, params url.Values, headers http.Header) (*Response, error) {
 	return c.SendRequest(ctx, http.MethodGet, path, params, headers, nil)
 }
 
+// Head sends an HTTP HEAD request.
+// path is joined with the client's base URL path.
+// params are encoded into the query string.
+// headers are merged with the client's default headers.
 func (c *Client) Head(ctx context.Context, path string, params url.Values, headers http.Header) (*Response, error) {
 	return c.SendRequest(ctx, http.MethodHead, path, params, headers, nil)
 }
 
+// Options sends an HTTP OPTIONS request.
+// path is joined with the client's base URL path.
+// params are encoded into the query string.
+// headers are merged with the client's default headers.
 func (c *Client) Options(ctx context.Context, path string, params url.Values, headers http.Header) (*Response, error) {
 	return c.SendRequest(ctx, http.MethodOptions, path, params, headers, nil)
 }
 
-// Methods that usually include a request body.
-
+// Post sends an HTTP POST request with an optional body.
+// path is joined with the client's base URL path.
+// params are encoded into the query string.
+// headers are merged with the client's default headers.
+// body may be nil if the endpoint does not require a body.
 func (c *Client) Post(ctx context.Context, path string, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
 	return c.SendRequest(ctx, http.MethodPost, path, params, headers, body)
 }
 
+// Put sends an HTTP PUT request with an optional body.
+// path is joined with the client's base URL path.
+// params are encoded into the query string.
+// headers are merged with the client's default headers.
+// body may be nil if the endpoint does not require a body.
 func (c *Client) Put(ctx context.Context, path string, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
 	return c.SendRequest(ctx, http.MethodPut, path, params, headers, body)
 }
 
+// Patch sends an HTTP PATCH request with an optional body.
+// path is joined with the client's base URL path.
+// params are encoded into the query string.
+// headers are merged with the client's default headers.
+// body may be nil if the endpoint does not require a body.
 func (c *Client) Patch(ctx context.Context, path string, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
 	return c.SendRequest(ctx, http.MethodPatch, path, params, headers, body)
 }
 
+// Delete sends an HTTP DELETE request with an optional body.
+// path is joined with the client's base URL path.
+// params are encoded into the query string.
+// headers are merged with the client's default headers.
+// body may be nil if the endpoint does not require a body.
 func (c *Client) Delete(ctx context.Context, path string, params url.Values, headers http.Header, body io.Reader) (*Response, error) {
 	return c.SendRequest(ctx, http.MethodDelete, path, params, headers, body)
 }
