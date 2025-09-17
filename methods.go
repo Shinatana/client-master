@@ -61,7 +61,7 @@ func (c *Client) SendRequest(ctx context.Context, method string, params url.Valu
 		}, fmt.Errorf("%w: %w", ErrFailedToReadResponseBody, err)
 	}
 
-	c.lg.Info().
+	c.lg.Debug().
 		Str("method", method).
 		Str("url", req.URL.String()).
 		Int("status", resp.StatusCode).

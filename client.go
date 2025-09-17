@@ -32,10 +32,10 @@ type Client struct {
 	lg         *zerolog.Logger
 }
 
-func NewHTTPClient(baseUrl string, opts ...Option) (*Client, error) {
-	baseParsedURL, err := url.Parse(baseUrl)
+func NewHTTPClient(baseURL string, opts ...Option) (*Client, error) {
+	baseParsedURL, err := url.Parse(baseURL)
 	if err != nil {
-		return nil, fmt.Errorf("invalid base url '%s': %w", baseUrl, err)
+		return nil, fmt.Errorf("invalid base url '%s': %w", baseURL, err)
 	}
 
 	suppliedOptions := applyOptions(opts...)
