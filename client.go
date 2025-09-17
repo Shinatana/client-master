@@ -97,15 +97,8 @@ func (c *Client) AddHeaders(h http.Header) {
 // for concurrent use with in-flight mutations.
 func (c *Client) ReplaceHeaders(h http.Header) {
 	if h == nil {
-		c.headers = make(http.Header)
 		return
 	}
-	clone := make(http.Header, len(h))
-	for k, vals := range h {
-		// copy slice to avoid sharing backing arrays
-		cp := make([]string, len(vals))
-		copy(cp, vals)
-		clone[k] = cp
-	}
-	c.headers = clone
+
+	c.headers = h.Clone()
 }
