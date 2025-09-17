@@ -1,6 +1,7 @@
 package client
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -21,7 +22,7 @@ type Option func(*optionList)
 type optionList struct {
 	lg      *zerolog.Logger
 	timeout time.Duration
-	headers Headers
+	headers http.Header
 }
 
 // WithLogger configures a zerolog.Logger to be used by the client.
@@ -43,7 +44,7 @@ func WithTimeout(timeout time.Duration) Option {
 // WithHeaders sets default Headers to be sent with every request.
 // If nil is provided, it will be normalized to an empty map.
 // Callers may still override or add request-specific headers later.
-func WithHeaders(headers Headers) Option {
+func WithHeaders(headers http.Header) Option {
 	return func(o *optionList) {
 		o.headers = headers
 	}
@@ -88,9 +89,9 @@ func normalizeTimeout(timeout time.Duration) time.Duration {
 
 // normalizeHeaders returns a non-nil headers map.
 // If headers is nil, an empty map is allocated.
-func normalizeHeaders(headers Headers) Headers {
+func normalizeHeaders(headers http.Header) http.Header {
 	if headers == nil {
-		return make(Headers)
+		return make(http.Header)
 	}
 
 	return headers
