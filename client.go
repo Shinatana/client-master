@@ -7,16 +7,33 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/rs/zerolog"
 )
 
 const (
 	defaultTimeout = 10
+	DefaultTimeout = 10 * time.Second
 )
 
 type Client struct {
 	Headers    Headers
 	baseUrl    string
 	httpClient http.Client
+	lg         *zerolog.Logger
+}
+
+func NewHTTPClient(baseUrl string, opts ...Option) *Client {
+	suppliedOptions := applyOptions(opts...)
+
+	return &Client{
+		Headers: suppliedOptions.headers,
+		baseUrl: baseUrl,
+		httpClient: http.Client{
+			Timeout: suppliedOptions.timeout,
+		},
+		lg: suppliedOptions.lg,
+	}
 }
 
 func New(baseUrl string, timeout *int) *Client {
