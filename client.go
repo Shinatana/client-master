@@ -2,7 +2,9 @@ package client
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"github.com/rs/zerolog"
 	"io"
 	"net/http"
 	"net/url"
@@ -17,9 +19,20 @@ type Client struct {
 	Headers    Headers
 	baseUrl    string
 	httpClient http.Client
+	logger     *zerolog.Logger
+	userAgent  string
 }
 
-func New(baseUrl string, timeout *int) *Client {
+func New(baseUrl string, timeout *int, log *zerolog.Logger, nolog bool, userAgent string) (*Client, error) {
+	if log == nil && !nolog {
+		return nil, errors.New("no logger provided")
+	}
+
+	if nolog {
+		tmp := zerolog.Nop()
+		log = &tmp
+	}
+
 	tt := defaultTimeout
 
 	if timeout != nil {
@@ -32,7 +45,9 @@ func New(baseUrl string, timeout *int) *Client {
 		httpClient: http.Client{
 			Timeout: time.Second * time.Duration(tt),
 		},
-	}
+		logger:    log,
+		userAgent: userAgent,
+	}, nil
 }
 
 func (client *Client) SetHeader(key, val string) *Client {
@@ -50,13 +65,21 @@ func (client *Client) fillRequestHeaders(r *http.Request, headers Headers) *Clie
 		r.Header.Add(key, val)
 	}
 
+	if client.userAgent != "" {
+		r.Header.Set("User-Agent", client.userAgent)
+	}
+
 	return client
 }
 
 func (client *Client) SendGet(path string, params Params, headers Headers) ([]byte, *int, error) {
 	request, err := client.createRequest(http.MethodGet, path, params, nil)
-
 	if err != nil {
+		client.logger.Error().
+			Err(err).
+			Str("method", http.MethodGet).
+			Str("url", client.baseUrl+path).
+			Msg("failed to build HTTP request")
 		return nil, nil, err
 	}
 
@@ -65,12 +88,22 @@ func (client *Client) SendGet(path string, params Params, headers Headers) ([]by
 	var response *http.Response
 
 	response, err = client.getResponse(request)
-
 	if err != nil {
+		client.logger.Error().
+			Err(err).
+			Str("method", request.Method).
+			Str("url", request.URL.String()).
+			Msg("failed to send HTTP request")
 		return nil, nil, err
 	}
 
-	return getResponseBody(response)
+	client.logger.Info().
+		Str("method", request.Method).
+		Str("url", request.URL.String()).
+		Int("status", response.StatusCode).
+		Msg("http request succeeded")
+
+	return getResponseBody(response, client.logger)
 }
 
 func (client *Client) SendPost(
@@ -79,9 +112,14 @@ func (client *Client) SendPost(
 	queryParams Params,
 	headers Headers,
 ) ([]byte, *int, error) {
-	request, err := client.createRequest(http.MethodPost, path, queryParams, jsonData)
 
+	request, err := client.createRequest(http.MethodPost, path, queryParams, jsonData)
 	if err != nil {
+		client.logger.Error().
+			Err(err).
+			Str("method", http.MethodPost).
+			Str("url", client.baseUrl+path).
+			Msg("failed to build HTTP request")
 		return nil, nil, err
 	}
 
@@ -90,12 +128,127 @@ func (client *Client) SendPost(
 	var response *http.Response
 
 	response, err = client.getResponse(request)
-
 	if err != nil {
+		client.logger.Error().
+			Err(err).
+			Str("method", request.Method).
+			Str("url", request.URL.String()).
+			Msg("failed to send HTTP request")
+		return nil, nil, err
+	}
+	client.logger.Info().
+		Str("method", request.Method).
+		Str("url", request.URL.String()).
+		Int("status", response.StatusCode).
+		Msg("http request succeeded")
+
+	return getResponseBody(response, client.logger)
+}
+
+func (client *Client) SendPut(
+	path string,
+	jsonData []byte,
+	queryParams Params,
+	headers Headers,
+) ([]byte, *int, error) {
+	request, err := client.createRequest(http.MethodPut, path, queryParams, jsonData)
+	if err != nil {
+		client.logger.Error().
+			Err(err).
+			Str("method", http.MethodPut).
+			Str("url", client.baseUrl+path).
+			Msg("failed to build HTTP request")
 		return nil, nil, err
 	}
 
-	return getResponseBody(response)
+	client.fillRequestHeaders(request, headers)
+
+	response, err := client.getResponse(request)
+	if err != nil {
+		client.logger.Error().
+			Err(err).
+			Str("method", request.Method).
+			Str("url", request.URL.String()).
+			Msg("failed to send HTTP request")
+		return nil, nil, err
+	}
+
+	client.logger.Info().
+		Str("method", request.Method).
+		Str("url", request.URL.String()).
+		Int("status", response.StatusCode).
+		Msg("http request succeeded")
+
+	return getResponseBody(response, client.logger)
+}
+
+func (client *Client) SendPatch(
+	path string,
+	jsonData []byte,
+	queryParams Params,
+	headers Headers,
+) ([]byte, *int, error) {
+	request, err := client.createRequest(http.MethodPatch, path, queryParams, jsonData)
+	if err != nil {
+		client.logger.Error().
+			Err(err).
+			Str("method", http.MethodPatch).
+			Str("url", client.baseUrl+path).
+			Msg("failed to build HTTP request")
+		return nil, nil, err
+	}
+
+	client.fillRequestHeaders(request, headers)
+
+	response, err := client.getResponse(request)
+	if err != nil {
+		client.logger.Error().
+			Err(err).
+			Str("method", request.Method).
+			Str("url", request.URL.String()).
+			Msg("failed to send HTTP request")
+		return nil, nil, err
+	}
+
+	client.logger.Info().
+		Str("method", request.Method).
+		Str("url", request.URL.String()).
+		Int("status", response.StatusCode).
+		Msg("http request succeeded")
+
+	return getResponseBody(response, client.logger)
+}
+
+func (client *Client) SendDelete(path string, params Params, headers Headers) ([]byte, *int, error) {
+	request, err := client.createRequest(http.MethodDelete, path, params, nil)
+	if err != nil {
+		client.logger.Error().
+			Err(err).
+			Str("method", http.MethodDelete).
+			Str("url", client.baseUrl+path).
+			Msg("failed to build HTTP request")
+		return nil, nil, err
+	}
+
+	client.fillRequestHeaders(request, headers)
+
+	response, err := client.getResponse(request)
+	if err != nil {
+		client.logger.Error().
+			Err(err).
+			Str("method", request.Method).
+			Str("url", request.URL.String()).
+			Msg("failed to send HTTP request")
+		return nil, nil, err
+	}
+
+	client.logger.Info().
+		Str("method", request.Method).
+		Str("url", request.URL.String()).
+		Int("status", response.StatusCode).
+		Msg("http request succeeded")
+
+	return getResponseBody(response, client.logger)
 }
 
 func (client *Client) prepareUrlWithParams(path string, dirtyParams Params) (string, error) {
@@ -149,18 +302,27 @@ func (client *Client) getResponse(request *http.Request) (*http.Response, error)
 	return response, nil
 }
 
-func closeResponseBody(response *http.Response) {
+func closeResponseBody(response *http.Response) error {
 	err := response.Body.Close()
 
 	if err != nil {
-		panic(err)
+		return errors.New("failed to close response body")
 	}
+	return nil
 }
 
-func getResponseBody(response *http.Response) ([]byte, *int, error) {
+func getResponseBody(response *http.Response, logger *zerolog.Logger) ([]byte, *int, error) {
 	defer func() {
-		closeResponseBody(response)
+		if err := closeResponseBody(response); err != nil {
+			logger.Warn().
+				Err(err).
+				Msg("failed to close response body")
+		}
 	}()
+
+	if response.StatusCode >= 300 {
+		return nil, &response.StatusCode, errors.New("http request failed")
+	}
 
 	body, err := io.ReadAll(response.Body)
 
